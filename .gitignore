@@ -1,3 +1,7 @@
 *.pth
 __pycache__
 *.t7
+NATS-tss-v1_0-3ffb9-simple/
+results/
+.ipynb_checkpoints/
+cifar10/

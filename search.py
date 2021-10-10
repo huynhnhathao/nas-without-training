@@ -1,3 +1,6 @@
+import logging
+import sys 
+
 import argparse
 import nasspace
 import datasets
@@ -15,9 +18,9 @@ from utils import add_dropout
 
 parser = argparse.ArgumentParser(description='NAS Without Training')
 parser.add_argument('--data_loc', default='../cifardata/', type=str, help='dataset folder')
-parser.add_argument('--api_loc', default='../NAS-Bench-201-v1_0-e61699.pth',
+parser.add_argument('--api_loc', default=r'C:\Users\ASUS\Desktop\nas\nas-without-training\NAS-Bench-201-v1_0-e61699.pth',
                     type=str, help='path to API')
-parser.add_argument('--save_loc', default='results/ICML', type=str, help='folder to save results')
+parser.add_argument('--save_loc', default='results', type=str, help='folder to save results')
 parser.add_argument('--save_string', default='naswot', type=str, help='prefix of results file')
 parser.add_argument('--score', default='hook_logdet', type=str, help='the score to evaluate')
 parser.add_argument('--nasspace', default='nasbench201', type=str, help='the nas search space to use')
@@ -42,6 +45,16 @@ parser.add_argument('--num_modules_per_stack', default=3, type=int, help='#modul
 parser.add_argument('--num_labels', default=1, type=int, help='#classes (nasbench101)')
 
 args = parser.parse_args()
+
+############################### Logging configuration #########################################
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(stream = sys.stdout, level = logging.INFO, format = log_format, 
+                    datefmt = '%m/%d %I:%M:%S %p')
+fh = logging.FileHandler(os.path.join(args.save_loc, 'log.txt'))
+fh.setFormatter(logging.Formatter(log_format))
+logging.getLogger('main_logger').addHandler(fh)
+##############################################################################################
+
 os.environ['CUDA_VISIBLE_DEVICES'] = args.GPU
 
 # Reproducibility
@@ -82,9 +95,10 @@ else:
     val_acc_type = 'x-valid'
 
 
-
 runs = trange(args.n_runs, desc='acc: ')
 for N in runs:
+    # each run sample n architectures at random, this is kind of random search 
+    # but use different seed
     start = time.time()
     indices = np.random.randint(0,len(searchspace),args.n_samples)
     scores = []
@@ -93,8 +107,10 @@ for N in runs:
     ranstate = random.getstate()
     torchstate = torch.random.get_rng_state()
     for arch in indices:
+        print(f'start searching')
         try:
             uid = searchspace[arch]
+            # 
             network = searchspace.get_network(uid)
             network.to(device)
             if args.dropout:
@@ -142,6 +158,7 @@ for N in runs:
             if args.kernel:
                 s = get_score_func(args.score)(out, labels)
             elif 'hook_' in args.score:
+                # compute log of determinant of the K matrix
                 network(x2.to(device))
                 s = get_score_func(args.score)(network.K, target)
             elif args.repeat < args.batch_size:

@@ -67,14 +67,18 @@ class NASBench201API(NASBenchMetaAPI):
       if verbose: print('try to create the NAS-Bench-201 api from {:}'.format(file_path_or_dict))
       assert os.path.isfile(file_path_or_dict), 'invalid path : {:}'.format(file_path_or_dict)
       self.filename = Path(file_path_or_dict).name
+      # when loaded it is a dict
       file_path_or_dict = torch.load(file_path_or_dict, map_location='cpu')
     elif isinstance(file_path_or_dict, dict):
       file_path_or_dict = copy.deepcopy(file_path_or_dict)
     else: raise ValueError('invalid type : {:} not in [str, dict]'.format(type(file_path_or_dict)))
+    # data must be a dict
     assert isinstance(file_path_or_dict, dict), 'It should be a dict instead of {:}'.format(type(file_path_or_dict))
+
     self.verbose = verbose # [TODO] a flag indicating whether to print more logs
     keys = ('meta_archs', 'arch2infos', 'evaluated_indexes')
     for key in keys: assert key in file_path_or_dict, 'Can not find key[{:}] in the dict'.format(key)
+    
     self.meta_archs = copy.deepcopy( file_path_or_dict['meta_archs'] )
     # This is a dict mapping each architecture to a dict, where the key is #epochs and the value is ArchResults
     self.arch2infos_dict = OrderedDict()

@@ -48,6 +48,7 @@ torch.manual_seed(args.seed)
 
 
 def get_batch_jacobian(net, x, target, device, args=None):
+    # compute the jacobian of the net wrt its input?
     net.zero_grad()
     x.requires_grad_(True)
     y, out = net(x)
@@ -61,9 +62,13 @@ dataset = 'fake' if 'fake' in args.dataset else args.dataset
 args.dataset = args.dataset.replace('fake', '')
 if args.dataset == 'cifar10':
     args.dataset = args.dataset + '-valid'
+
+# this return the nas_bench_201 api class instance
 searchspace = nasspace.get_search_space(args)
+
 if 'valid' in args.dataset:
     args.dataset = args.dataset.replace('-valid', '')
+
 train_loader = datasets.get_data(args.dataset, args.data_loc, args.trainval, args.batch_size, args.augtype, args.repeat, args)
 os.makedirs(args.save_loc, exist_ok=True)
 
@@ -83,9 +88,6 @@ try:
     accs = np.load(accfilename + '.npy')
 except:
     accs = np.zeros(len(searchspace))
-
-
-
 
 
 for i, (uid, network) in enumerate(searchspace):

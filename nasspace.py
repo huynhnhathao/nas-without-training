@@ -1,6 +1,6 @@
 from models import get_cell_based_tiny_net, get_search_spaces
 from nas_201_api import NASBench201API as API
-from nasbench import api as nasbench101api
+# from nasbench import api as nasbench101api
 from nas_101_api.model import Network
 from nas_101_api.model_spec import ModelSpec
 import itertools
@@ -289,7 +289,7 @@ class NDS:
             if 'ResN' in self.searchspace:
                 config['stem_type'] = 'res_stem_in'
             else:
-                config['stem_type'] = 'simple_stem_in'
+                config['stem_type'] = 'simple_stem_in' 
             #"res_stem_cifar": ResStemCifar,
             #"res_stem_in": ResStemIN,
             #"simple_stem_in": SimpleStemIN,
